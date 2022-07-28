@@ -23,6 +23,9 @@
                 font-size: 8vmin;
                 font-weight: bold;
             }
+            .titlecenter {
+                text-align: center;
+            }
             .icon {
                 height: 10vmin;
                 width: 10vmin;
@@ -59,6 +62,41 @@
             }
             .button {
                 height: 10vmin;
+            }
+            /* The Modal (background) */
+            .modal {
+                display: block; /* Hidden by default */
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }
+            /* Modal Content */
+            .modal-content {
+                background-color: #fefefe;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+            }
+            /* The Close Button */
+            .close {
+                color: #aaaaaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            .close:hover,
+            .close:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
             }
         </style>
         <script>
@@ -256,7 +294,6 @@ var MersenneTwister = function(seed) {
         </script>
         <script>
             window.onkeydown = function (e){
-                e.preventDefault();
                 if(e.key == "ArrowLeft"){
                     e.preventDefault();
                     left();
@@ -265,6 +302,7 @@ var MersenneTwister = function(seed) {
                     right();
                 }else if(e.key == "ArrowDown"){
                     e.preventDefault();
+                    down();
                 }
             }
 
@@ -337,6 +375,7 @@ var MersenneTwister = function(seed) {
                     this.activex = this.randrange(0, this.BWIDTH);
                     this.activey = 0;
                     this.activetile = [this.weightchoice(this.letters), "transparent"];
+                    this.next = this.weightchoice(this.letters);
                 }
             }
 
@@ -360,17 +399,16 @@ var MersenneTwister = function(seed) {
 
             function drawboard(board){
                 let i=0, j=0;
-                console.log(game.activetile[0], "cell"+game.activey+"-"+game.activex)
                 for(var row of board){
                     j=0
                     for(var cell of row){
                         document.getElementById("cell"+i+"-"+j).innerHTML = cell[0];
                         document.getElementById("cell"+i+"-"+j).style.backgroundColor = cell[1];
                         j++
-                        console.log("draw")
                     }
                     i++;
                 }
+                document.getElementById("next").innerHTML = game.next;
                 document.getElementById("cell"+game.activey+"-"+game.activex).innerHTML = game.activetile[0];
                 document.getElementById("cell"+game.activey+"-"+game.activex).style.backgroundColor = game.activetile[1];
             }
@@ -384,19 +422,31 @@ var MersenneTwister = function(seed) {
                         game.board[game.activey][game.activex] = game.activetile;
                         game.activex = game.randrange(0, game.BWIDTH);
                         game.activey = 0;
-                        game.activetile = [game.weightchoice(game.letters), "transparent"];
+                        game.activetile = [game.next, "transparent"];
+                        game.next = game.weightchoice(game.letters);
                     }
                 }else{
                     game.board[game.activey][game.activex] = game.activetile ;
                     game.activex = game.randrange(0, game.BWIDTH);
                     game.activey = 0;
-                    game.activetile = [game.weightchoice(game.letters), "transparent"];
+                    game.activetile = [game.next, "transparent"];
+                    game.next = game.weightchoice(game.letters);
                 }
                 drawboard(game.board);
                 setTimeout("updateboard();", 1000);
             }
 
             function load(){
+                var overmodal = document.getElementById("overmodal");
+                var span = document.getElementsByClassName("close")[0];
+                span.onclick = function() {
+                    overmodal.style.display = "none";
+                }
+                window.onclick = function(event) {
+                    if (event.target == overmodal) {
+                        overmodal.style.display = "none";
+                    }
+                }
                 game = new Game(10);
                 console.log(game.board);
                 drawboard(game.board);
@@ -417,6 +467,13 @@ var MersenneTwister = function(seed) {
                 }
             }
 
+            function down(){
+                if(game.board[game.activey+1][game.activex][0] == " "){
+                    game.activey++;
+                    drawboard(game.board);
+                }
+            }
+
         </script>
     </head>
     <body>
@@ -427,8 +484,10 @@ var MersenneTwister = function(seed) {
         </div>
         <hr>
         <div id="game">
-            <div style="width: 100%;">
+            <div style="width: 100%; display: inline;">
                 <button class="button" style="margin-bottom: 5px;">Pause Game</button>
+                <span style="position: absolute; right: 12vmin;">Next:</span>
+                <div id="next" class="cell" style="margin-bottom: 5px; float: right;"></div>
             </div>
             <table class="maintab">
                 <tr>
@@ -476,9 +535,20 @@ var MersenneTwister = function(seed) {
             <table style="width: 80vmin; font-size: 5vmin;">
                 <tr style="width: 80vmin;"><td style="width: 50%;"><button class="move" onclick="left();">&larr;</button></td><td style="width: 50%;"><button class="move" onclick="right();">&rarr;</button></td></tr>
             </table>
+            <table style="width: 40vmin; font-size: 5vmin;">
+                <tr style="width: 40vmin;"><td style="width: 40vmin;"><button class="move" onclick="down();">&darr;</button></td></tr>
+            </table>
             <table style="width: 80vmin; font-size: 5vmin;">
                 <tr style="width: 80vmin;"><td style="width: 80vmin;"><button class="move">Clear Words</button></td></tr>
             </table>
+        </div>
+        <div id="overmodal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h1 class="titlecenter">Game Over!</h1>
+                <br>
+                <h2 class="titlecenter">Your Score: <b>0</b></h2>
+            </div>
         </div>
         <script>
             load();
